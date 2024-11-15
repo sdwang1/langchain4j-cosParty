@@ -33,12 +33,11 @@ public class ActionRecord {
     }
 
     public JsonObject toJsonObject(){
-        return new JsonObject()
-                .put("actor_name", actorName)
-                .put("ai_message", new JsonObject()
-                        .put("text", aiMessage.text())
-                        .put("tool_execution_requests", aiMessage.toolExecutionRequests())
-                );
+        var j= new JsonObject()
+                .put("actor_name", actorName);
+        if(aiMessage.text() != null) j.put("content", aiMessage.text());
+        if(aiMessage.toolExecutionRequests() != null) j.put("tool_execution_requests", aiMessage.toolExecutionRequests());
+        return j;
     }
 
     @Override

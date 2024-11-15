@@ -14,11 +14,11 @@ public enum SupportLLModel {
 
     public ChatLanguageModel buildChatLLM() {
         String name = this.name();
-        String apiKey = Keel.config(name + ".apiKey");
-        String modelName = Keel.config(name + ".modelName");
-        String maxTokensStr = Keel.config(name + ".maxTokens");
+        String apiKey = Keel.config(name + ".api_key");
+        String modelName = Keel.config(name + ".model_name");
+        String maxTokensStr = Keel.config(name + ".max_tokens");
         String temperatureStr = Keel.config(name + ".temperature");
-        String secretKey = Keel.config(name + ".secretKey");
+        String secretKey = Keel.config(name + ".secret_key");
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalArgumentException(name + " LLM SECRET KEY NOT SET");
         }

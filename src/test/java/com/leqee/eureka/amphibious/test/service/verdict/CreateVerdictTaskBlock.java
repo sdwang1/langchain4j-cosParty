@@ -1,7 +1,6 @@
 package com.leqee.eureka.amphibious.test.service.verdict;
 
 import com.leqee.eureka.amphibious.test.service.EurekaAmphibiousClient;
-import io.github.sinri.AiOnHttpMix.utils.SupportedModel;
 import io.github.sinri.drydock.naval.raider.Privateer;
 import io.github.sinri.keel.tesuto.TestUnit;
 import io.vertx.core.Future;

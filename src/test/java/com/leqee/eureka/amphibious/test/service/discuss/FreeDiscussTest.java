@@ -1,7 +1,7 @@
 package com.leqee.eureka.amphibious.test.service.discuss;
 
+import com.leqee.eureka.amphibious.daemon.engine.core.SupportLLModel;
 import com.leqee.eureka.amphibious.test.service.AbstractRoutineTest;
-import io.github.sinri.AiOnHttpMix.utils.SupportedModel;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -23,7 +23,7 @@ public class FreeDiscussTest extends AbstractRoutineTest {
 
     protected JsonObject v0() {
         return new JsonObject()
-                .put("llm_model", SupportedModel.Volces.name())
+                .put("llm_model", SupportLLModel.DASHSCOPE.name())
                 .put("host", new JsonObject()
                         .put("actor_name", "主持人")
                         .put("discuss_introduction",
