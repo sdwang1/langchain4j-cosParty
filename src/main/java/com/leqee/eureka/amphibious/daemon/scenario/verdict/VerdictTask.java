@@ -35,7 +35,7 @@ public class VerdictTask extends AbstractAmphibiousTask {
                 # 数据事故定责会议需要讨论并定责的数据事故 \
                 """ + verdictTaskMeta.getAccidentDescription();
 
-        VerdictHost discussHost = new VerdictHost(llmModel, actorName, discussIntroduction);
+        VerdictHost discussHost = new VerdictHost(llmModel, actorName, discussIntroduction,  5);
         VerdictMember memberForDataSource = new VerdictMember(
                 llmModel,
                 "数据源维护人员代表",
@@ -73,14 +73,16 @@ public class VerdictTask extends AbstractAmphibiousTask {
                         memberForFell
                 )
         );
+        return discuss.run()
+                .compose(v -> {
+                    List<ActionRecord> actionRecords = discuss.getContext();
 
-        discuss.run();
-        List<ActionRecord> actionRecords = discuss.getContext();
+                    JsonArray array = new JsonArray();
+                    actionRecords.forEach(actionRecord -> {
+                        array.add(actionRecord.toJsonObject());
+                    });
 
-        JsonArray array = new JsonArray();
-        actionRecords.forEach(actionRecord -> {
-            array.add(actionRecord.toJsonObject());
-        });
-        return Future.succeededFuture(array.toString());
+                    return Future.succeededFuture(array.toString());
+                });
     }
 }

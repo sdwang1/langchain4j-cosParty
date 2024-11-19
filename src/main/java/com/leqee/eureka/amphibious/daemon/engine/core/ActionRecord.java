@@ -1,17 +1,25 @@
 package com.leqee.eureka.amphibious.daemon.engine.core;
 
-import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import io.vertx.core.json.JsonObject;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.Serializable;
+import java.util.List;
 
-public class ActionRecord {
+public class ActionRecord implements Serializable {
     private String actorName;
-    private AiMessage aiMessage;
+    private String content;
+    private List<ToolExecutionRequest> toolExecutionRequests;
 
-    public ActionRecord(@Nonnull String actorName, @Nonnull AiMessage aiMessage) {
+    public ActionRecord(@Nonnull String actorName, @Nonnull String content, @Nullable List<ToolExecutionRequest> toolExecutionRequests) {
         this.actorName = actorName;
-        this.aiMessage = aiMessage;
+        this.content = content;
+        this.toolExecutionRequests = toolExecutionRequests;
+    }
+    public ActionRecord(@Nonnull String actorName, @Nonnull String content){
+        this(actorName, content, null);
     }
 
     public String getActorName() {
@@ -23,20 +31,31 @@ public class ActionRecord {
         return this;
     }
 
-    public AiMessage getAiMessage() {
-        return aiMessage;
+    public String getContent() {
+        return content;
     }
 
-    public ActionRecord setAiMessage(@Nonnull AiMessage aiMessage) {
-        this.aiMessage = aiMessage;
+    public ActionRecord setContent(String content) {
+        this.content = content;
+        return this;
+    }
+
+    public List<ToolExecutionRequest> getToolExecutionRequests() {
+        return toolExecutionRequests;
+    }
+
+    public ActionRecord setToolExecutionRequests(List<ToolExecutionRequest> toolExecutionRequests) {
+        this.toolExecutionRequests = toolExecutionRequests;
         return this;
     }
 
     public JsonObject toJsonObject(){
         var j= new JsonObject()
-                .put("actor_name", actorName);
-        if(aiMessage.text() != null) j.put("content", aiMessage.text());
-        if(aiMessage.toolExecutionRequests() != null) j.put("tool_execution_requests", aiMessage.toolExecutionRequests());
+                .put("actor_name", actorName)
+                .put("content", content);
+        if(toolExecutionRequests != null && !toolExecutionRequests.isEmpty()) {
+            j.put("tool_execution_requests", toolExecutionRequests);
+        }
         return j;
     }
 

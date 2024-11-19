@@ -42,10 +42,11 @@
             <artifactId>langchain4j-dashscope</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.bsc.langgraph4j/langgraph4j-core-jdk8 -->
         <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-dashscope</artifactId>
-            <version>${langchain4j.version}</version>
+            <groupId>org.bsc.langgraph4j</groupId>
+            <artifactId>langgraph4j-core-jdk8</artifactId>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>

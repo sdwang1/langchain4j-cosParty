@@ -11,6 +11,7 @@ import dev.langchain4j.service.V;
 import io.vertx.core.json.JsonObject;
 
 import java.util.List;
+import java.util.Map;
 
 public class VerdictHost extends DiscussHost {
     interface Assistant {
@@ -19,8 +20,11 @@ public class VerdictHost extends DiscussHost {
         AiMessage chat(@V("context") String context);
     }
 
-    public VerdictHost(ChatLanguageModel llmModel, String actorName, String discussIntroduction) {
+    private final int minContextLength;
+
+    public VerdictHost(ChatLanguageModel llmModel, String actorName, String discussIntroduction, int minContextLength) {
         super(llmModel, actorName, discussIntroduction);
+        this.minContextLength = minContextLength;
     }
 
     @Override
@@ -45,19 +49,20 @@ public class VerdictHost extends DiscussHost {
     }
 
     @Override
-    public ActionRecord act(List<ActionRecord> context) {
-        StringBuilder sb = new StringBuilder();
-        context.forEach(action -> {
-            sb.append("【").append(action.getActorName()).append("】说：\n")
-                    .append(action.getAiMessage().text()).append("\n");
-        });
-        sb.append(getConclusionRequest());
-
+    public Map<String, Object> act(List<ActionRecord> context) {
         Assistant assistant = AiServices.create(Assistant.class, getChatLanguageModel());
-        AiMessage resMessage = assistant.chat(sb.toString());
-        return new ActionRecord(
-                getActorName(),
-                resMessage
+        AiMessage message = assistant.chat(
+                formatContext(context) + getConclusionRequest()
         );
+        var record = new ActionRecord(getActorName(), message.text(), message.toolExecutionRequests());
+        return Map.of(
+                "actor_name", getActorName(),
+                "context", record
+        );
+    }
+
+    @Override
+    public boolean shouldStopDiscussing(List<ActionRecord> context) {
+        return context.size() >= minContextLength;
     }
 }

@@ -1,6 +1,7 @@
 package com.leqee.eureka.amphibious.daemon.engine.discuss;
 
 import com.leqee.eureka.amphibious.daemon.engine.core.ActionRecord;
+import com.leqee.eureka.amphibious.daemon.engine.core.Actor;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.service.AiServices;
@@ -9,16 +10,17 @@ import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 
 import java.util.List;
+import java.util.Map;
 
-public class DiscussHost {
+public class DiscussHost implements Actor {
     interface Assistant {
         @SystemMessage("你是【{{actorName}}】，是这次讨论会议的召集人。")
         @UserMessage("{{context}}")
         AiMessage chat(@V("actorName") String actorName, @V("context") String context);
     }
 
-    private final ChatLanguageModel llmModel;
     private final String discussIntroduction;
+    private final ChatLanguageModel llmModel;
     private final String actorName;
 
     public DiscussHost(ChatLanguageModel llmModel, String actorName, String discussIntroduction) {
@@ -39,22 +41,17 @@ public class DiscussHost {
         return "请根据以上讨论内容，作结束发言。";
     }
 
-    public ActionRecord act(List<ActionRecord> context) {
-        StringBuilder sb = new StringBuilder();
-        context.forEach(action -> {
-            sb.append("【").append(action.getActorName()).append("】说：\n")
-                    .append(action.getAiMessage().text()).append("\n");
-        });
-        sb.append(getConclusionRequest());
-
+    @Override
+    public Map<String, Object> act(List<ActionRecord> context) {
         Assistant assistant = AiServices.create(Assistant.class, llmModel);
-        AiMessage resMessage = assistant.chat(
+        AiMessage message = assistant.chat(
                 actorName,
-                sb.toString()
+                formatContext(context) + getConclusionRequest()
         );
-        return new ActionRecord(
-                actorName,
-                resMessage
+        var record = new ActionRecord(actorName, message.text(), message.toolExecutionRequests());
+        return Map.of(
+                "actor_name", actorName,
+                "context", record
         );
     }
 
@@ -62,7 +59,6 @@ public class DiscussHost {
         return llmModel;
     }
 
-    public boolean shouldStopDiscussing(List<ActionRecord> context) {
-        return true;
-    }
+    public boolean shouldStopDiscussing(List<ActionRecord> context) { return true; }
 }
+

@@ -41,13 +41,16 @@ public class FreeDiscussTask extends AbstractAmphibiousTask {
         });
         Discuss discuss = new Discuss(host, members);
 
-        discuss.run();
-        List<ActionRecord> actionRecords = discuss.getContext();
+        return discuss.run()
+                .compose(v -> {
+                    List<ActionRecord> actionRecords = discuss.getContext();
 
-        JsonArray array = new JsonArray();
-        actionRecords.forEach(actionRecord -> {
-            array.add(actionRecord.toJsonObject());
-        });
-        return Future.succeededFuture(array.toString());
+                    JsonArray array = new JsonArray();
+                    actionRecords.forEach(actionRecord -> {
+                        array.add(actionRecord.toJsonObject());
+                    });
+
+                    return Future.succeededFuture(array.toString());
+                });
     }
 }
