@@ -34,17 +34,17 @@ public class Discuss {
     }
 
     public Future<Void> run() {
-        CompiledGraph<DiscussState> workflow = null;
+        CompiledGraph<DiscussState> workflow;
+        String hostActorName = host.getActorName();
         try {
             StateGraph<DiscussState> graph = new StateGraph<>(DiscussState.SCHEMA, DiscussState::new)
-                    .addEdge(START, "host")
-                    .addNode("host", node_async(state -> {
-                        String actorName = host.getActorName();
+                    .addEdge(START, hostActorName)
+                    .addNode(hostActorName, node_async(state -> {
                         var history = state.getContext();
                         if (history.isEmpty()) {
-                            var start = new ActionRecord(actorName, host.getDiscussIntroduction());
+                            var start = new ActionRecord(hostActorName, host.getDiscussIntroduction());
                             return Map.of(
-                                    "actor_name", actorName,
+                                    "actor_name", hostActorName,
                                     "context", start
                             );
                         } else {
@@ -56,30 +56,32 @@ public class Discuss {
                     }));
             for (int i = 0; i < members.size(); ++i) {
                 var member = members.get(i);
-                graph = graph
-                        .addNode(member.getActorName(), node_async(state -> {
-                            return member.act(state.getContext());
-                        }))
-                        .addEdge(i == 0 ? host.getActorName() : members.get(i - 1).getActorName(), member.getActorName());
+                String actorName = member.getActorName();
+                graph = graph.addNode(actorName, node_async(state -> {
+                    return member.act(state.getContext());
+                }));
+                if (i > 0) {
+                    graph = graph.addEdge(members.get(i - 1).getActorName(), actorName);
+                }
             }
             var firstActorName = members.get(0).getActorName();
             var lastActorName = members.get(members.size() - 1).getActorName();
             graph = graph
                     .addConditionalEdges(
-                            host.getActorName(),
+                            hostActorName,
                             edge_async(state -> host.shouldStopDiscussing(state.getContext()) ? END : firstActorName),
                             Map.of(firstActorName, firstActorName, END, END))
                     .addConditionalEdges(
                             lastActorName,
-                            edge_async(state -> host.shouldStopDiscussing(state.getContext()) ? host.getActorName() : firstActorName),
-                            Map.of(firstActorName, firstActorName, host.getActorName(), host.getActorName()));
+                            edge_async(state -> host.shouldStopDiscussing(state.getContext()) ? hostActorName : firstActorName),
+                            Map.of(firstActorName, firstActorName, hostActorName, hostActorName));
             workflow = graph.compile();
         } catch (GraphStateException e) {
             return Future.failedFuture(e);
         }
 
         Map<String, Object> initialState = new HashMap<>();
-        initialState.put("actor_name", host.getActorName());
+        initialState.put("actor_name", hostActorName);
         initialState.put("context", new ArrayList<>());
         try {
             workflow.invoke(initialState);
